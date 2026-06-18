@@ -121,7 +121,4 @@ Key API modules: Auth, Users, Games, Products, Payments, Orders, Transactions, B
   <p>
     <a href="docs/README_ID.md">Indonesia</a> · <strong>English</strong>
   </p>
-  <p>
-    <a href="https://github.com/anomalyco/opencode">Built with opencode</a>
-  </p>
 </div>

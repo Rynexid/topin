@@ -119,9 +119,6 @@ Modul API utama: Auth, Users, Games, Products, Payments, Orders, Transactions, B
 
 <div align="center">
   <p>
-    <a href="README.md">English</a> · <strong>Indonesia</strong>
-  </p>
-  <p>
-    <a href="https://github.com/anomalyco/opencode">Built with opencode</a>
+    <a href="../README.md">English</a> · <strong>Indonesia</strong>
   </p>
 </div>
