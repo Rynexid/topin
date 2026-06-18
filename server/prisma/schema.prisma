@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethodType {
+  BANK_TRANSFER
+  E_WALLET
+  PULSA
+  VOUCHER
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String
+  phone         String?
+  role          UserRole @default(USER)
+  isActive      Boolean  @default(true)
+  avatar        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  orders        Order[]
+  sessions      Session[]
+  auditLogs     AuditLog[]
+}
+
+model Session {
+  id            String   @id @default(cuid())
+  userId        String
+  refreshToken  String   @unique
+  userAgent     String?
+  ipAddress     String?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Game {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String?
+  shortDescription String?
+  icon          String?
+  thumbnail     String?
+  banner        String?
+  publisher     String?
+  genre         String?
+  isActive      Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  products      Product[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  gameId        String
+  name          String
+  description   String?
+  price         Int
+  originalPrice Int?
+  currency      String   @default("IDR")
+  stock         Int      @default(0)
+  isActive      Boolean  @default(true)
+  isPopular     Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  game          Game     @relation(fields: [gameId], references: [id])
+  orderItems    OrderItem[]
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  userId          String?
+  customerName    String?
+  customerEmail   String?
+  customerPhone   String?
+  gameUserId      String?
+  gameServerId    String?
+  status          OrderStatus   @default(PENDING)
+  totalAmount     Int
+  paymentMethodId String?
+  paymentProof    String?
+  notes           String?
+  paidAt          DateTime?
+  processedAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user            User?         @relation(fields: [userId], references: [id])
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  orderItems      OrderItem[]
+  transaction     Transaction?
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int      @default(1)
+  price     Int
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  orderId         String   @unique
+  amount          Int
+  status          String   @default("PENDING")
+  paymentMethod   String?
+  paymentChannel  String?
+  referenceId     String?
+  gatewayResponse String?
+  paidAt          DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model PaymentMethod {
+  id         String            @id @default(cuid())
+  name       String
+  type       PaymentMethodType
+  icon       String?
+  accountName String?
+  accountNumber String?
+  isActive   Boolean           @default(true)
+  sortOrder  Int               @default(0)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  orders     Order[]
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  image     String
+  link      String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String?
+  entityId  String?
+  metadata  String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+}
